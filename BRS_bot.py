@@ -1,9 +1,11 @@
 import logging
 from telegram.ext import Updater, CommandHandler, ConversationHandler, MessageHandler, Filters
 from telegram import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
+from brs_bot import brs_parser
+from brs_bot.brs_parser import pers_pos, pers_points
 
 
-updater = Updater(token=, use_context=True)
+updater = Updater(token='', use_context=True)
 dispatcher = updater.dispatcher
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -11,7 +13,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 subjects_dict = {'ДИЯ 📔': 0, 'ДУ 📗': 1, 'МА 📕': 2, 'ОС 📙': 3, 'C 📓': 4, 'Э 📘': 6, 'ЯиМП 📒': 7}
 
-FUNC, SUB, POS, NAME, DISC = range(5)
+FUNC, SUB, POS, NAME, DIS = range(5)
 
 
 def start(update, context):
@@ -22,7 +24,8 @@ def start(update, context):
 
 def choose_function(update, context):
     bot = context.bot
-    chat_data = update.message.text.split()
+    chat_data = context.chat_data
+    chat_data['name'] = update.message.text
     keyboard = [
         [KeyboardButton('Посмотреть балл по предметам 🔍 '),
          KeyboardButton('Посмотреть текущее место в рейтенге 📋')]
@@ -30,8 +33,10 @@ def choose_function(update, context):
     reply_markup = ReplyKeyboardMarkup(keyboard,
                                        one_time_keyboard=True,
                                        resize_keyboard=True)
-    bot.send_message(update.message.chat_id, f"{chat_data[1]}, what do you want❔",
+
+    bot.send_message(update.message.chat_id, "Okey, what do you want❔",
                      reply_markup=reply_markup)
+
     return FUNC
 
 
@@ -52,10 +57,16 @@ def choose_discipline(update, context):
                                        resize_keyboard=True)
     bot.send_message(update.message.chat_id, "Choose discipline 💡",
                      reply_markup=reply_markup)
-    return DISC
+    return DIS
 
-# def show_points(update,context):
-#     bot = context.bot
+
+def show_position(update, context):
+    chat_data = context.chat_data
+    name = chat_data['name']
+    pos = pers_pos[name]
+    context.bot.send_message(chat_id=update.effective_chat.id,
+                             text=f"Your position is {pos}")
+
 
 inline_btn_1 = InlineKeyboardButton('Первая кнопка!', callback_data='button1')
 
@@ -70,8 +81,10 @@ choose_category_conversation = ConversationHandler(
     states={
         NAME: [MessageHandler(Filters.text,
                                       choose_function)],
-        FUNC: [MessageHandler(Filters.text,
-                              choose_discipline)]
+        FUNC: [
+               MessageHandler(Filters.text,
+                              show_position)
+               ]
     },
     fallbacks=[MessageHandler(Filters.all, cancel)])
 
