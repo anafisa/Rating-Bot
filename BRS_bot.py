@@ -1,11 +1,12 @@
 import logging
 from telegram.ext import Updater, CommandHandler, ConversationHandler, MessageHandler, Filters
 from telegram import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from brs_bot import brs_parser
 from brs_bot.brs_parser import pers_pos, pers_points
 
 
-updater = Updater(token='', use_context=True)
+updater = Updater(token='1010708327:AAFEHnvsYtLJcb-4TuSWNvPLJbi00Crr8BI', use_context=True)
 dispatcher = updater.dispatcher
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -27,7 +28,7 @@ def choose_function(update, context):
     chat_data = context.chat_data
     chat_data['name'] = update.message.text
     keyboard = [
-        [KeyboardButton('Посмотреть балл по предметам 🔍 '),
+        [KeyboardButton('Посмотреть балл по предметам 🔍'),
          KeyboardButton('Посмотреть текущее место в рейтенге 📋')]
     ]
     reply_markup = ReplyKeyboardMarkup(keyboard,
@@ -47,8 +48,8 @@ def choose_discipline(update, context):
          KeyboardButton('ДУ 📗'),
          KeyboardButton('МА 📕'),
          KeyboardButton('ОС 📙'),
-         KeyboardButton('C 📓'),
-         KeyboardButton('Э 📘'),
+         KeyboardButton('C   📓'),
+         KeyboardButton('Э   📘'),
          KeyboardButton('ЯиМП 📒')],
         [KeyboardButton('All disciplines 📚')]]
 
@@ -81,9 +82,12 @@ choose_category_conversation = ConversationHandler(
     states={
         NAME: [MessageHandler(Filters.text,
                                       choose_function)],
-        FUNC: [
+
+        FUNC: [MessageHandler(Filters.regex('^(Посмотреть балл по предметам 🔍)$'),
+                              choose_discipline),
                MessageHandler(Filters.text,
-                              show_position)
+                              show_position),
+
                ]
     },
     fallbacks=[MessageHandler(Filters.all, cancel)])
