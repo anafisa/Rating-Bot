@@ -6,7 +6,7 @@ from brs_bot import brs_parser
 from brs_bot.brs_parser import pers_pos, pers_points
 
 
-updater = Updater(token='1010708327:AAFEHnvsYtLJcb-4TuSWNvPLJbi00Crr8BI', use_context=True)
+updater = Updater(token='', use_context=True)
 dispatcher = updater.dispatcher
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -67,9 +67,6 @@ def show_position(update, context):
     pos = pers_pos[name]
     context.bot.send_message(chat_id=update.effective_chat.id,
                              text=f"Your position is {pos}")
-
-
-inline_btn_1 = InlineKeyboardButton('Первая кнопка!', callback_data='button1')
 
 
 def cancel(update, context):
