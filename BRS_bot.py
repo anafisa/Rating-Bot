@@ -6,13 +6,13 @@ from brs_bot import brs_parser
 from brs_bot.brs_parser import pers_pos, pers_points
 
 
-updater = Updater(token='', use_context=True)
+updater = Updater(token='1010708327:AAFEHnvsYtLJcb-4TuSWNvPLJbi00Crr8BI', use_context=True)
 dispatcher = updater.dispatcher
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 
-subjects_dict = {'ДИЯ 📔': 0, 'ДУ 📗': 1, 'МА 📕': 2, 'ОС 📙': 3, 'C 📓': 4, 'Э 📘': 6, 'ЯиМП 📒': 7}
+subjects_dict = {'ДИЯ 📔': 0, 'ДУ 📗': 1, 'МА 📕': 2, 'ОС 📙': 3, 'C   📓': 4, 'Э   📘': 6, 'ЯиМП 📒': 7}
 
 FUNC, SUB, POS, NAME, DIS = range(5)
 
