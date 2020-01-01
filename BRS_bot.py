@@ -6,13 +6,14 @@ from brs_bot import brs_parser
 from brs_bot.brs_parser import pers_pos, pers_points
 
 
-updater = Updater(token='1010708327:AAFEHnvsYtLJcb-4TuSWNvPLJbi00Crr8BI', use_context=True)
+updater = Updater(token='', use_context=True)
 dispatcher = updater.dispatcher
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 
-subjects_dict = {'ДИЯ 📔': 0, 'ДУ 📗': 1, 'МА 📕': 2, 'ОС 📙': 3, 'C   📓': 4, 'Э   📘': 6, 'ЯиМП 📒': 7}
+subjects_dict = {'ДИЯ 📔': 0, 'ДУ 📗': 1, 'МА 📕': 2, 'ОС 📙': 3, 'C   📓': 4, 'Э   📘': 6,
+                 'ЯиМП 📒': 7, 'All disciplines 📚': ''}
 
 FUNC, SUB, POS, NAME, DIS = range(5)
 
@@ -28,14 +29,14 @@ def choose_function(update, context):
     chat_data = context.chat_data
     chat_data['name'] = update.message.text
     keyboard = [
-        [KeyboardButton('Посмотреть балл по предметам 🔍'),
-         KeyboardButton('Посмотреть текущее место в рейтенге 📋')]
+        [KeyboardButton('Check up your points 🔍'),
+         KeyboardButton('Check up your position 📋')]
     ]
     reply_markup = ReplyKeyboardMarkup(keyboard,
                                        one_time_keyboard=True,
                                        resize_keyboard=True)
 
-    bot.send_message(update.message.chat_id, "Okey, what do you want❔",
+    bot.send_message(update.message.chat_id, "Okay, what do you want❔",
                      reply_markup=reply_markup)
 
     return FUNC
@@ -58,7 +59,7 @@ def choose_discipline(update, context):
                                        resize_keyboard=True)
     bot.send_message(update.message.chat_id, "Choose discipline 💡",
                      reply_markup=reply_markup)
-    return DIS
+    return SUB
 
 
 def show_position(update, context):
@@ -67,6 +68,23 @@ def show_position(update, context):
     pos = pers_pos[name]
     context.bot.send_message(chat_id=update.effective_chat.id,
                              text=f"Your position is {pos}")
+
+
+def show_points(update, context):
+    chat_data = context.chat_data
+    name = chat_data['name']
+    ind = subjects_dict[update.message.text]
+    if ind != '':
+        points = pers_points[name][ind]
+        context.bot.send_message(chat_id=update.effective_chat.id,
+                                 text=f'You have {points}')
+    else:
+        points = pers_points[name]
+        points.remove('')
+        keys = list(subjects_dict.keys())[:-1]
+        res = ' '.join([keys[i]+(points[i]) for i in range(len(points))])
+        context.bot.send_message(chat_id=update.effective_chat.id,
+                                 text=res)
 
 
 def cancel(update, context):
@@ -80,21 +98,17 @@ choose_category_conversation = ConversationHandler(
         NAME: [MessageHandler(Filters.text,
                                       choose_function)],
 
-        FUNC: [MessageHandler(Filters.regex('^(Посмотреть балл по предметам 🔍)$'),
+        FUNC: [MessageHandler(Filters.regex('^(Check up your points 🔍)$'),
                               choose_discipline),
                MessageHandler(Filters.text,
-                              show_position),
+                              show_position)],
 
-               ]
+        SUB:   [MessageHandler(Filters.text,
+                              show_points)]
+
+
     },
     fallbacks=[MessageHandler(Filters.all, cancel)])
-
-
-
-
-
-# start_handler = CommandHandler('start', start)
-# dispatcher.add_handler(start_handler)
 
 
 dispatcher.add_handler(choose_category_conversation)
@@ -103,6 +117,3 @@ logging.info("start")
 updater.start_polling(poll_interval=1)
 
 
-# there will be function to check your points in all subjects
-# to check your position in brs
-# bot will sent you new points
