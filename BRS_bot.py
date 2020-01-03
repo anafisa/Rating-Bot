@@ -92,6 +92,11 @@ def show_points(update, context):
                                  text=res)
 
 
+# def send_upd(update,context):
+
+
+
+
 def cancel(update, context):
     return ConversationHandler.END
 
@@ -111,7 +116,10 @@ choose_category_conversation = ConversationHandler(
         FUNC: [MessageHandler(Filters.regex('^(Check up your points 🔍)$'),
                               choose_discipline),
                MessageHandler(Filters.text,
-                              show_position)],
+                              show_position),
+               MessageHandler(Filters.text,
+                              send_upd)
+               ],
 
         SUB:   [MessageHandler(Filters.text,
                               show_points)]
