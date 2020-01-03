@@ -34,7 +34,8 @@ def choose_function(update, context):
     chat_data['name'] = update.message.text
     keyboard = [
         [KeyboardButton('Check up your points 🔍'),
-         KeyboardButton('Check up your position 📋')]
+         KeyboardButton('Check up your position 📋'),
+         KeyboardButton('Subscribe to updates 👩‍💻')]
     ]
     reply_markup = ReplyKeyboardMarkup(keyboard,
                                        one_time_keyboard=True,
