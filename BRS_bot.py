@@ -4,10 +4,11 @@ from telegram import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, 
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from brs_bot import brs_parser
 from brs_bot.brs_parser import pers_pos, pers_points
-
+import telegram.ext
 
 updater = Updater(token='', use_context=True)
 dispatcher = updater.dispatcher
+j = updater.job_queue
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
@@ -19,6 +20,9 @@ FUNC, SUB, POS, NAME, DIS = range(5)
 
 
 def start(update, context):
+    chat_data = context.chat_data
+    chat_data['id'] = update.message.chat.id
+    print(chat_data['id'])
     context.bot.send_message(chat_id=update.effective_chat.id,
                              text=f"Hi Dear ✋ \nPlease, type your full name 💬 ")
     return NAME
@@ -82,7 +86,7 @@ def show_points(update, context):
         points = pers_points[name]
         points.remove('')
         keys = list(subjects_dict.keys())[:-1]
-        res = ' '.join([keys[i]+(points[i]) for i in range(len(points))])
+        res = ' | '.join([keys[i]+(points[i]) for i in range(len(points))])
         context.bot.send_message(chat_id=update.effective_chat.id,
                                  text=res)
 
@@ -93,7 +97,12 @@ def cancel(update, context):
 
 choose_category_conversation = ConversationHandler(
     entry_points=[MessageHandler(Filters.regex("start"),
-                                 start)],
+                                 start),
+                  MessageHandler(Filters.regex('^(Check up your points 🔍)$'),
+                              choose_discipline),
+                  MessageHandler(Filters.text,
+                                 show_position)
+                  ],
     states={
         NAME: [MessageHandler(Filters.text,
                                       choose_function)],
@@ -110,6 +119,12 @@ choose_category_conversation = ConversationHandler(
     },
     fallbacks=[MessageHandler(Filters.all, cancel)])
 
+
+def callback_minute(context: telegram.ext.CallbackContext):
+    context.bot.send_message(chat_id='',
+                             text='One message every minute')
+
+job_minute = j.run_repeating(callback_minute, interval=60, first=0)
 
 dispatcher.add_handler(choose_category_conversation)
 
