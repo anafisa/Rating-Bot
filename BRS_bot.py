@@ -1,12 +1,12 @@
 import logging
-from telegram.ext import Updater, CommandHandler, ConversationHandler, MessageHandler, Filters
+from telegram.ext import Updater, CommandHandler, ConversationHandler, MessageHandler, Filters, PicklePersistence, Updater, CallbackQueryHandler
 from telegram import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
-from brs_bot import brs_parser
 from brs_bot.brs_parser import pers_pos, pers_points
-import telegram.ext
 
-updater = Updater(token='', use_context=True)
+
+my_persistence = PicklePersistence(filename='BRS_bot')
+
+updater = Updater(token='', persistence=my_persistence, use_context=True)
 dispatcher = updater.dispatcher
 j = updater.job_queue
 
@@ -23,14 +23,18 @@ def start(update, context):
     chat_data = context.chat_data
     chat_data['id'] = update.message.chat.id
     context.bot.send_message(chat_id=update.effective_chat.id,
-                             text=f"Hi Dear ✋ \nPlease, type your full name 💬 ")
+                             text=f"Hi 👀 \nPlease, type your full name 💬 ")
     return NAME
+
+
+def get_name(update, context):
+    context.user_data['name'] = update.message.text
+    choose_function(update, context)
+    return ConversationHandler.END
 
 
 def choose_function(update, context):
     bot = context.bot
-    chat_data = context.chat_data
-    chat_data['name'] = update.message.text
     keyboard = [
         [KeyboardButton('Check up your points 🔍'),
          KeyboardButton('Check up your position 📋'),
@@ -67,8 +71,7 @@ def choose_discipline(update, context):
 
 
 def show_position(update, context):
-    chat_data = context.chat_data
-    name = chat_data['name']
+    name = context.user_data['name']
     pos = pers_pos[name]
     context.bot.send_message(chat_id=update.effective_chat.id,
                              text=f"Your position is {pos}")
@@ -76,10 +79,8 @@ def show_position(update, context):
     return ConversationHandler.END
 
 
-
 def show_points(update, context):
-    chat_data = context.chat_data
-    name = chat_data['name']
+    name = context.user_data['name']
     ind = subjects_dict[update.message.text]
     if ind != '':
         points = pers_points[name][ind]
@@ -116,7 +117,7 @@ choose_category_conversation = ConversationHandler(
                   ],
     states={
         NAME: [MessageHandler(Filters.text,
-                              choose_function)],
+                              get_name)],
 
         FUNC: [MessageHandler(Filters.regex('^(Check up your points 🔍)$'),
                               choose_discipline),
@@ -132,12 +133,13 @@ choose_category_conversation = ConversationHandler(
         SUB: [MessageHandler(Filters.text,
                              show_points),
 
-              MessageHandler(Filters.regex("menu"),
-                             choose_function)
               ]
 
     },
-    fallbacks=[MessageHandler(Filters.all, cancel)])
+
+    fallbacks=[MessageHandler(Filters.all, cancel)],
+
+    persistent=True, name='my_name')
 
 
 # def callback_minute(context: telegram.ext.CallbackContext):
