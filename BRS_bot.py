@@ -1,5 +1,5 @@
 import logging
-from telegram.ext import Updater, CommandHandler, ConversationHandler, MessageHandler, Filters, PicklePersistence, Updater, CallbackQueryHandler
+from telegram.ext import Updater, CommandHandler, ConversationHandler, MessageHandler, Filters, PicklePersistence, Updater, CallbackQueryHandler, CallbackContext
 from telegram import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
 from brs_bot.brs_parser import pers_pos, pers_points
 
@@ -16,21 +16,30 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 subjects_dict = {'ДИЯ 📔': 0, 'ДУ 📗': 1, 'МА 📕': 2, 'ОС 📙': 3, 'C   📓': 4, 'Э   📘': 6,
                  'ЯиМП 📒': 7, 'All disciplines 📚': ''}
 
-FUNC, SUB, POS, NAME, DIS = range(5)
+FUNC, SUB, DIS, NAME = range(4)
 
 
 def start(update, context):
     chat_data = context.chat_data
-    chat_data['id'] = update.message.chat.id
-    context.bot.send_message(chat_id=update.effective_chat.id,
-                             text=f"Hi 👀 \nPlease, type your full name 💬 ")
+    chat_data['id'] = update.message.chat_id
+    context.bot.send_message(chat_id=update.message.chat_id,
+                             text=f"Hi 👩‍💻 \nPlease, type your full name 💬 ")
+    return NAME
+
+
+def mistake(update, context):
+    context.bot.send_message(chat_id=update.message.chat_id,
+                             text=f"Not found👤\nPlease, type your FULL name again 💬 ")
     return NAME
 
 
 def get_name(update, context):
     context.user_data['name'] = update.message.text
-    choose_function(update, context)
-    return ConversationHandler.END
+    if context.user_data['name'] in pers_pos:
+        choose_function(update, context)
+        return ConversationHandler.END
+    else:
+        mistake(update, context)
 
 
 def choose_function(update, context):
@@ -73,7 +82,7 @@ def choose_discipline(update, context):
 def show_position(update, context):
     name = context.user_data['name']
     pos = pers_pos[name]
-    context.bot.send_message(chat_id=update.effective_chat.id,
+    context.bot.send_message(chat_id=update.message.chat_id,
                              text=f"Your position is {pos}")
     choose_function(update, context)
     return ConversationHandler.END
@@ -84,21 +93,37 @@ def show_points(update, context):
     ind = subjects_dict[update.message.text]
     if ind != '':
         points = pers_points[name][ind]
-        context.bot.send_message(chat_id=update.effective_chat.id,
+        context.bot.send_message(chat_id=update.message.chat_id,
                                  text=f'You have {points}')
     else:
         points = pers_points[name]
         points.remove('')
         keys = list(subjects_dict.keys())[:-1]
         res = ' | '.join([keys[i] + (points[i]) for i in range(len(points))])
-        context.bot.send_message(chat_id=update.effective_chat.id,
+        context.bot.send_message(chat_id=update.message.chat_id,
                                  text=res)
 
     choose_function(update, context)
     return ConversationHandler.END
 
 
-#def send_upd(update,context):
+def callback_func(context: CallbackContext):
+    # How to get an upd?
+    chat_data = context.job.context
+    usr_id = chat_data['id']
+    name = chat_data['name']
+    p_p = pers_points
+    points = p_p[name]
+    points.remove('')
+    keys = list(subjects_dict.keys())[:-1]
+    res = ' | '.join([keys[i] + (points[i]) for i in range(len(points))])
+    context.bot.send_message(chat_id=usr_id,
+                             text=res)
+
+
+def send_upd(update, context):
+    j.run_repeating(callback_func, interval=60, first=0, context={'id': update.message.chat_id,
+                                                                  'name': context.user_data['name']})
 
 
 def cancel(update, context):
@@ -112,8 +137,12 @@ choose_category_conversation = ConversationHandler(
                   MessageHandler(Filters.regex('^(Check up your points 🔍)$'),
                                  choose_discipline),
 
+                  MessageHandler(Filters.regex('^(Check up your position 📋)$'),
+                              show_position),
+
                   MessageHandler(Filters.text,
-                                 show_position)
+                              send_upd)
+
                   ],
     states={
         NAME: [MessageHandler(Filters.text,
@@ -122,8 +151,14 @@ choose_category_conversation = ConversationHandler(
         FUNC: [MessageHandler(Filters.regex('^(Check up your points 🔍)$'),
                               choose_discipline),
 
-               MessageHandler(Filters.text,
+               MessageHandler(Filters.regex('^(Check up your position 📋)$'),
                               show_position),
+
+               MessageHandler(Filters.text,
+                              send_upd)
+
+               # MessageHandler(Filters.text,
+               #                show_position),
 
 
                # MessageHandler(Filters.text,
@@ -140,14 +175,6 @@ choose_category_conversation = ConversationHandler(
     fallbacks=[MessageHandler(Filters.all, cancel)],
 
     persistent=True, name='my_name')
-
-
-# def callback_minute(context: telegram.ext.CallbackContext):
-#     context.bot.send_message(chat_id='',
-#                              text='One message every minute')
-#
-#
-# job_minute = j.run_repeating(callback_minute, interval=60, first=0)
 
 dispatcher.add_handler(choose_category_conversation)
 
