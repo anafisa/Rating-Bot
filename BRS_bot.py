@@ -1,6 +1,6 @@
 import logging
 from telegram.ext import Updater, CommandHandler, ConversationHandler, MessageHandler, Filters, PicklePersistence, Updater, CallbackQueryHandler, CallbackContext
-from telegram import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import ReplyKeyboardMarkup, KeyboardButton
 from brs_bot.brs_parser import pers_pos, pers_points
 
 
@@ -15,6 +15,8 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 
 subjects_dict = {'ДИЯ 📔': 0, 'ДУ 📗': 1, 'МА 📕': 2, 'ОС 📙': 3, 'C   📓': 4, 'Э   📘': 6,
                  'ЯиМП 📒': 7, 'All disciplines 📚': ''}
+
+pers_points_old = pers_points
 
 FUNC, SUB, DIS, NAME = range(4)
 
@@ -84,6 +86,7 @@ def show_position(update, context):
     pos = pers_pos[name]
     context.bot.send_message(chat_id=update.message.chat_id,
                              text=f"Your position is {pos}")
+
     choose_function(update, context)
     return ConversationHandler.END
 
@@ -110,21 +113,34 @@ def show_points(update, context):
 def callback_func(context: CallbackContext):
     # How to get an upd?
     chat_data = context.job.context
+
     usr_id = chat_data['id']
     name = chat_data['name']
-    p_p = pers_points
-    points = p_p[name]
-    points.remove('')
-    keys = list(subjects_dict.keys())[:-1]
-    res = ' | '.join([keys[i] + (points[i]) for i in range(len(points))])
-    context.bot.send_message(chat_id=usr_id,
-                             text=res)
+
+    points_old = pers_points_old[name]
+    points_current = pers_points[name]
+
+    points_old.remove('')
+    points_current.remove('')
+
+    if points_old:
+        for i in range(len(points_old)):
+            if points_old[i] != points_current[i]:
+                points = points_old[i] - points_current[i]
+                score = points_current[i]
+                # надо ещё как-то соотносить с предметом
+                context.bot.send_message(chat_id=usr_id,
+                                        text="Upd")
+    print(1)
+    return ConversationHandler.END
 
 
 def send_upd(update, context):
+    context.bot.send_message(chat_id=update.message.chat_id,
+                             text='🆗')
     j.run_repeating(callback_func, interval=60, first=0, context={'id': update.message.chat_id,
                                                                   'name': context.user_data['name']})
-
+    choose_function(update, context)
 
 def cancel(update, context):
     return ConversationHandler.END
@@ -156,20 +172,11 @@ choose_category_conversation = ConversationHandler(
 
                MessageHandler(Filters.text,
                               send_upd)
-
-               # MessageHandler(Filters.text,
-               #                show_position),
-
-
-               # MessageHandler(Filters.text,
-               #                send_upd)
                ],
-        #  дописать тутъ
+
         SUB: [MessageHandler(Filters.text,
                              show_points),
-
               ]
-
     },
 
     fallbacks=[MessageHandler(Filters.all, cancel)],
@@ -180,3 +187,7 @@ dispatcher.add_handler(choose_category_conversation)
 
 logging.info("start")
 updater.start_polling(poll_interval=1)
+
+# добавить функцию скрина
+# функци скрина по предмету
+# как заливать на сервер
