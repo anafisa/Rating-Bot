@@ -11,6 +11,6 @@ __2) If you are a student of FINEC you will be offered to choose some functions_
 
 __3) Click "Check up points" and choose the discipline__
 
-# ![](https://cdn1.savepice.ru/uploads/2020/2/14/e856b1084c1777c4f55717f88c77cefb-full.png)
+# ![](https://sun6-14.userapi.com/UR3hyJBwOI_9v9ifdYrC_X-ORWATr7fW8gYbyQ/OlZOanxKrsw.jpg)
 
-__4) Also, you may check up your position or subscribe to updates of FINEC rating system__
+__4) Also, you may check up your position or subscribe to updates of FINEC rating system and Bot will send you every system update __
