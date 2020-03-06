@@ -7,7 +7,7 @@ __1) Click /start and type your full name. Bot'll check whether you are FINEC st
 
 __2) If you are a student of FINEC you will be offered to choose some functions__
 
-# ![](https://cdn1.savepice.ru/uploads/2020/2/14/93bd618db17e40b0d35f5dc5fb6e1686-full.png)
+# ![](https://sun9-15.userapi.com/PKMJzCA8auxrgonRNbFeJk_zgUPBSyVaTUSflQ/MYJjjpmqOws.jpg)
 
 __3) Click "Check up points" and choose the discipline__
 
