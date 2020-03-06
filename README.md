@@ -13,4 +13,4 @@ __3) Click "Check up points" and choose the discipline__
 
 # ![](https://sun6-14.userapi.com/UR3hyJBwOI_9v9ifdYrC_X-ORWATr7fW8gYbyQ/OlZOanxKrsw.jpg)
 
-__4) Also, you may check up your position or subscribe to updates of FINEC rating system and Bot will send you every system update __
+__4) Also, you may check up your position or subscribe to updates of FINEC rating system and Bot will send you every system update__
